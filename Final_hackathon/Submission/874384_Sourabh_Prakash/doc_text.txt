@@ -1,0 +1,34 @@
+Explanation / feature engineering :
+
+Assuming average word size as 10
+So 5000 letters approximates to 500 words.
+
+Note: As the number of pdfs are in majority so explanation is given keeping that in view. Some parameters may vary if we take txt or csv files. But the process and explanation remains the same. (refer to precise pipeline section for the difference)
+
+First, the pipeline tries to identify abstract, introduction and conclusion from each file. If they are present then, it extracts the first 5000 letters from intro and abstract. We also add some words from conclusion. 
+Reason : Dealing with such huge number of files, we assume that most of the information from the file should be present in the introduction and abstract.
+
+It these are not present we simply take the first 5000 letters. The process tried to extract the text such that the chunk that we put into cleaningis around 5000 letters on an average, across the formats pdfs, txts and csvs. SO the pipeline is designed in such a way, that it takes care of that.
+
+Second, In the text cleaning, we remove stopwords, brackets, digits, words smaller than two letters, etc. The usual text cleaning that is done for NLP. 
+
+In this model, we have removed stopwords for some topics where as kept for some: Each one has its merit and demerit. 
+Merit: If stopwords are removed then the final summary does give better summary of the topic, and the sentences also makes sense.  
+	Demerit: The summary lacks helping verbs like is , am are, etc so the sentence is not grammatically correct. 
+	On the other hand, if we keep the stopwords: 
+### this is already in word/pdf documentation  ###
+
+Merit: The final summary looks very real and human like.
+Demerit: But the overall summary of the topic is not covered. It somehow missed many points from the topic. 
+
+Third, applying LSA algorithm in each file provides us the summary of that file. As a result we get the most important information from each file in just 4-5 sentences.  
+Imporance:  This helps in drastically reducing the amount of text, while retaining the important information.
+We then collect these sentences together for 20 such pdf files and apply Bert on them.(This number is a bit ditterent for txt and csv files) 
+Reason: Bert is an abstractive summary method. It will provide the abstract view of the (20 X 5) sentences, In just 10 sentences. So, we basically reduce the 20 pdfs to 10 sentences, just keeping the important information.
+BART and GPT were also experimented with, but only with a small sample. As bert gave better result on that sample so BERT was selected. From the research point of view, we can also try these on the overall dataset and can compare the results. 
+
+Forth, the collective output from bert is collected and is then fed in KL-sum algorithm. It outputs 50 sentences for the collective bert input.  
+Reason: KL-sum is an extractive summarization method. It gives important to a word on how similar it is to other words. So, it tries to give retain the most important information. As a result topics which have occurred more across the files will be selected. 
+
+Final, the 50 sentences from KL-sum goes into T5 algorithm (t5-large) and gives us the final summary. As T5 model takes in tokens of size 512, so the input is first divided into parts of 500 tokens each and the summary is generated for each part. With minimum length 70 words. 
+Reason: The algorithms before T5, provides us the very important and most frequent occurring features and information. But T5 generates and presents the information in precise and in a semantic way, presenting us the overall summary. 
