@@ -1,4 +1,4 @@
-#Read Me
+# Read Me
 
 ## NLP Hackathon Series
 This hackathon series consisted on 5 eleminater rounds with increasing level of difficulty, and participants were elimiated each round. 
